@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>オンラインルーレット</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>オンラインルーレット</h1>
+  </header>
+  <div class="container">
+    <!-- ロビー状態 -->
+    <div id="roomContainer" class="fade-in">
+      <h2>ルームに参加</h2>
+      <!-- ユーザー名: 100文字、ルーム名: 200文字に変更 -->
+      <input type="text" id="usernameInput" maxlength="100" placeholder="ユーザー名" value="Guest">
+      <input type="text" id="roomInput" maxlength="200" placeholder="ルーム名">
+      <button id="joinRoomBtn">参加する</button>
+    </div>
+    <!-- 入室後の画面 -->
+    <div id="mainContainer">
+      <div id="infoPanel" class="fade-in">
+        <h3 id="infoRoomName">ルーム: </h3>
+        <button id="leaveRoomBtn">ルーム退出</button>
+        <div id="shareArea"></div>
+        <p id="infoParticipants">参加者: </p>
+      </div>
+      <div id="rouletteArea" class="fade-in">
+        <canvas id="wheel" width="500" height="500"></canvas>
+        <button id="spinBtn">ルーレットを回す</button>
+        <div id="result"></div>
+        <div id="resultHistory"></div>
+      </div>
+      <div id="configArea" class="fade-in">
+        <h2>ルーレット項目設定</h2>
+        <div id="itemsContainer">
+          <!-- ルーレット項目: 300文字に変更 -->
+          <div class="item">
+            <div class="dragHandle" draggable="true">≡</div>
+            <input type="text" class="itemInput" maxlength="300" value="A">
+            <button class="removeItemBtn">×</button>
+          </div>
+          <div class="item">
+            <div class="dragHandle" draggable="true">≡</div>
+            <input type="text" class="itemInput" maxlength="300" value="B">
+            <button class="removeItemBtn">×</button>
+          </div>
+        </div>
+        <button id="addItemBtn">＋ 項目を追加</button>
+        <button id="resetBtn">リセット</button>
+      </div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
