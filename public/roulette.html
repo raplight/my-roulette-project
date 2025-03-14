@@ -4,39 +4,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>オンラインルーレット</title>
+  <!-- 外部スタイルシートの読み込み -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- ヘッダー：タイトル表示およびトップページへの遷移 -->
   <header>
     <h1>オンラインルーレット</h1>
   </header>
   <div class="container">
-    <!-- ロビー状態 -->
+    <!-- ロビー画面：ルーム参加用入力フォーム -->
     <div id="roomContainer" class="fade-in">
       <h2>ルームに参加</h2>
-      <!-- ユーザー名: 100文字、ルーム名: 200文字に変更 -->
+      <!-- ユーザー名（最大100文字）とルーム名（最大200文字）の入力欄 -->
       <input type="text" id="usernameInput" maxlength="100" placeholder="ユーザー名" value="Guest">
       <input type="text" id="roomInput" maxlength="200" placeholder="ルーム名">
       <button id="joinRoomBtn">参加する</button>
     </div>
-    <!-- 入室後の画面 -->
+    <!-- 入室後のメイン画面 -->
     <div id="mainContainer">
+      <!-- ルーム情報パネル -->
       <div id="infoPanel" class="fade-in">
         <h3 id="infoRoomName">ルーム: </h3>
         <button id="leaveRoomBtn">ルーム退出</button>
         <div id="shareArea"></div>
         <p id="infoParticipants">参加者: </p>
       </div>
+      <!-- ルーレット本体エリア -->
       <div id="rouletteArea" class="fade-in">
         <canvas id="wheel" width="500" height="500"></canvas>
         <button id="spinBtn">ルーレットを回す</button>
         <div id="result"></div>
         <div id="resultHistory"></div>
       </div>
+      <!-- ルーレット設定エリア（項目の追加・編集） -->
       <div id="configArea" class="fade-in">
         <h2>ルーレット項目設定</h2>
         <div id="itemsContainer">
-          <!-- ルーレット項目: 300文字に変更 -->
+          <!-- 初期ルーレット項目（各項目は最大300文字） -->
           <div class="item">
             <div class="dragHandle" draggable="true">≡</div>
             <input type="text" class="itemInput" maxlength="300" value="A">
@@ -53,6 +58,7 @@
       </div>
     </div>
   </div>
+  <!-- 外部スクリプトの読み込み -->
   <script src="script.js"></script>
 </body>
 </html>

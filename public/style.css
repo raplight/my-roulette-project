@@ -1,5 +1,7 @@
+/* --- Google Fonts のインポート --- */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Noto+Sans+JP:wght@400;700&display=swap');
 
+/* --- カラーパレットおよび基本変数 --- */
 :root {
   --primary: #6366f1;
   --primary-dark: #4f46e5;
@@ -10,6 +12,7 @@
   --text-light: #6b7280;
 }
 
+/* --- リセットと基本スタイル --- */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -23,6 +26,7 @@ body {
   line-height: 1.6;
 }
 
+/* --- ヘッダー --- */
 header {
   text-align: center;
   padding: 1rem;
@@ -31,16 +35,19 @@ header {
   cursor: pointer;
 }
 
+/* --- コンテナ --- */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
 
+/* --- 見出し --- */
 h1, h2, h3 {
   margin-bottom: 1rem;
 }
 
+/* --- 入力欄・ボタンのスタイル --- */
 input, button {
   font-family: inherit;
   font-size: 1rem;
@@ -75,6 +82,7 @@ button:hover {
   background-color: var(--primary-dark);
 }
 
+/* --- ルーム参加エリア --- */
 #roomContainer {
   background-color: var(--surface);
   border-radius: 0.5rem;
@@ -84,6 +92,7 @@ button:hover {
   margin: 2rem auto;
 }
 
+/* --- 入室後メイン画面 --- */
 #mainContainer {
   display: none;
 }
@@ -92,6 +101,7 @@ button:hover {
   display: block;
 }
 
+/* --- レスポンシブレイアウト --- */
 @media (min-width: 768px) {
   .joined #mainContainer {
     display: grid;
@@ -103,6 +113,7 @@ button:hover {
   }
 }
 
+/* --- ルーム情報パネル --- */
 #infoPanel {
   background-color: var(--surface);
   border-radius: 0.5rem;
@@ -110,7 +121,6 @@ button:hover {
   margin-bottom: 1rem;
 }
 
-/* ルーム名および参加者表示は横幅に合わせて折り返す */
 #infoRoomName,
 #infoParticipants {
   white-space: normal;
@@ -123,6 +133,7 @@ button:hover {
   background-color: #ef4444;
 }
 
+/* --- 共有エリア --- */
 #shareArea {
   margin-top: 0.5rem;
   font-size: 0.9rem;
@@ -142,6 +153,7 @@ button:hover {
   }
 }
 
+/* --- SNS用ボタン --- */
 .snsBtn {
   margin-left: 0.5rem;
   font-size: 0.9rem;
@@ -189,6 +201,7 @@ button:hover {
   background-color: #333333;
 }
 
+/* --- ルーレットエリア --- */
 #rouletteArea {
   background-color: var(--surface);
   border-radius: 0.5rem;
@@ -213,7 +226,7 @@ canvas {
   background-color: #d97706;
 }
 
-/* 結果表示エリア：折り返し設定 */
+/* --- 結果表示 --- */
 #result {
   font-size: 1.5rem;
   font-weight: bold;
@@ -224,7 +237,7 @@ canvas {
   overflow-wrap: break-word;
 }
 
-/* 結果履歴エリア：折り返し設定 */
+/* --- 結果履歴 --- */
 #resultHistory {
   margin-top: 1rem;
   padding: 1rem;
@@ -238,12 +251,14 @@ canvas {
   overflow-wrap: break-word;
 }
 
+/* --- ルーレット項目設定エリア --- */
 #configArea {
   background-color: var(--surface);
   border-radius: 0.5rem;
   padding: 2rem;
 }
 
+/* --- 項目のスタイル --- */
 .item {
   display: flex;
   align-items: center;
@@ -299,6 +314,7 @@ canvas {
   background-color: #dc2626;
 }
 
+/* --- アニメーション --- */
 .fade-in {
   animation: fadeIn 0.5s ease-in;
 }

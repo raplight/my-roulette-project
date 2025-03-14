@@ -1,19 +1,25 @@
-// --- タイトルヘッダークリックでトップページ（roulette.html）に遷移 ---
+// ==================================================
+// オンラインルーレット：メインスクリプト
+// --------------------------------------------------
+// このスクリプトは、ルーレットの描画、ユーザー操作、WebSocket 通信等の処理を行います。
+// ==================================================
+
+// ----- ヘッダークリックでトップページへ遷移 -----
 document.querySelector("header").addEventListener("click", () => {
   window.location.href = "roulette.html";
 });
 
-// --- URLパラメータでルーム名自動入力 ---
+// ----- URLパラメータからルーム名を自動入力 ----- 
 window.addEventListener('load', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const roomParam = urlParams.get('room');
   if (roomParam) {
-    // ルーム名は先頭・末尾の余分な空白を削除して設定
+    // 余分な空白を削除して設定
     document.getElementById('roomInput').value = roomParam.trim();
   }
 });
 
-// --- 基本的なサニタイズ（HTMLエスケープ） ---
+// ----- HTMLサニタイズ関数（基本的なエスケープ処理） -----
 function sanitize(str) {
   return str.replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
@@ -22,7 +28,7 @@ function sanitize(str) {
             .replace(/'/g, "&#39;");
 }
 
-// --- 状態変数 ---
+// ----- グローバル状態変数 ----- 
 let currentRoom = "";
 let roomStates = {};
 let rollResults = [];
@@ -31,13 +37,14 @@ let sections = [], colors = [], arc = 0;
 let startAngle = 0, spinAngleStart = 0, spinTime = 0, spinTimeTotal = 0;
 let isSpinning = false;
 
-// --- WebSocket 接続・再接続・ハートビート ---
+// ----- WebSocket 接続関連 ----- 
 let ws;
 const wsProtocol = location.protocol === "https:" ? "wss:" : "ws:";
-const reconnectDelay = 5000;
-const heartbeatInterval = 30000;
+const reconnectDelay = 5000;      // 再接続までの遅延（ミリ秒）
+const heartbeatInterval = 30000;  // ハートビート送信間隔（ミリ秒）
 let heartbeatTimer = null;
 
+// ハートビート開始
 function startHeartbeat() {
   stopHeartbeat();
   heartbeatTimer = setInterval(() => {
@@ -46,20 +53,26 @@ function startHeartbeat() {
     }
   }, heartbeatInterval);
 }
+
+// ハートビート停止
 function stopHeartbeat() {
   if (heartbeatTimer) {
     clearInterval(heartbeatTimer);
     heartbeatTimer = null;
   }
 }
+
+// WebSocket 接続および再接続処理
 function connectWebSocket() {
   ws = new WebSocket(wsProtocol + "//" + location.host);
+  
   ws.onopen = () => {
     console.log("WebSocket connected");
-    // ユーザー名、ルーム名は前後の空白のみ削除
+    // ユーザー名（前後の空白を削除・サニタイズ）をサーバへ送信
     let username = document.getElementById('usernameInput').value.trim();
     username = sanitize(username).substring(0, 100);
     ws.send(JSON.stringify({ type: "setUsername", username }));
+    // 既にルームが設定されている場合は参加メッセージを送信
     if (currentRoom !== "") {
       ws.send(JSON.stringify({ type: "joinRoom", room: currentRoom, username }));
     } else {
@@ -74,10 +87,12 @@ function connectWebSocket() {
     console.log("Received:", msg);
     switch (msg.type) {
       case "roomInfo":
+        // 参加者情報の更新
         document.getElementById('infoParticipants').textContent =
           "参加者: " + msg.clients.map(c => c.username).join(", ");
         break;
       case "roomJoined":
+        // ルーム入室成功時の画面切替
         document.getElementById('roomContainer').style.display = "none";
         document.body.classList.add("joined");
         fadeIn(document.getElementById('infoPanel'));
@@ -85,9 +100,11 @@ function connectWebSocket() {
         fadeIn(document.getElementById('configArea'));
         document.getElementById('infoRoomName').textContent = "ルーム: " + msg.room;
         currentRoom = msg.room;
+        // 共有URL の生成と各SNS連携設定
         const shareURL = location.origin + location.pathname + "?room=" + encodeURIComponent(msg.room);
         document.getElementById('shareArea').innerHTML = generateShareHTML(shareURL);
         registerShareEvents(shareURL);
+        // ルーム退出ボタンの設定
         document.getElementById('leaveRoomBtn').addEventListener('click', () => {
           if (currentRoom !== "") {
             roomStates[currentRoom] = {
@@ -103,9 +120,10 @@ function connectWebSocket() {
         });
         break;
       case "resetResult":
-        // 必要に応じ処理
+        // 必要に応じてリセット処理を実装
         break;
       case "spin":
+        // ルーレット回転開始時の処理
         document.getElementById("result").textContent = "";
         console.log("Spin started by:", msg.spunBy);
         startAngle = 0;
@@ -116,11 +134,13 @@ function connectWebSocket() {
         setTimeout(() => { if (!isSpinning) { isSpinning = true; rotateWheel(); } }, Math.max(0, delay));
         break;
       case "updateParameters":
+        // ルーレット設定の更新
         applyParameters(msg.parameters);
         rollResults = [];
         updateResultHistory();
         break;
       case "updateResults":
+        // ルーレット結果の更新
         rollResults = msg.results;
         if (!isSpinning) updateResultHistory();
         break;
@@ -141,13 +161,14 @@ function connectWebSocket() {
 
 connectWebSocket();
 
+// ページ離脱時にルーム退出メッセージを送信
 window.addEventListener("beforeunload", () => {
   if (currentRoom !== "") {
     ws.send(JSON.stringify({ type: "userLeft", room: currentRoom }));
   }
 });
 
-// --- ユーザー名変更通知 ---
+// ----- ユーザー名変更イベント ----- 
 document.getElementById("usernameInput").addEventListener("change", () => {
   let username = document.getElementById("usernameInput").value.trim();
   username = sanitize(username).substring(0, 100);
@@ -156,7 +177,7 @@ document.getElementById("usernameInput").addEventListener("change", () => {
   }
 });
 
-// --- 共有URL生成＆SNSイベント登録 ---
+// ----- 共有URL生成とSNS連携用関数 ----- 
 function generateShareHTML(shareURL) {
   return "共有URL: <a href='" + shareURL + "' target='_blank'>" + shareURL + "</a>" +
          " <button id='copyBtn' class='snsBtn'>コピー</button>" +
@@ -207,12 +228,11 @@ function registerShareEvents(shareURL) {
   });
 }
 
-// --- ルーレット入室 ---
+// ----- ルーム入室処理 ----- 
 document.getElementById("joinRoomBtn").addEventListener("click", () => {
-  // 先頭・末尾の余分な空白は削除（trim()）するが、内部の空白は保持
   let roomName = document.getElementById("roomInput").value.trim();
   let username = document.getElementById("usernameInput").value.trim();
-  // 各値はサニタイズ後、最大文字数制限：ユーザー名 100文字、ルーム名 200文字
+  // サニタイズと最大文字数制限（ユーザー名 100文字、ルーム名 200文字）
   username = sanitize(username).substring(0, 100);
   roomName = sanitize(roomName).substring(0, 200);
   if (username === "") {
@@ -223,6 +243,7 @@ document.getElementById("joinRoomBtn").addEventListener("click", () => {
     alert("ルーム名を入力してください。");
     return;
   }
+  // 以前保存されたルーム状態があれば復元
   if (roomStates[roomName]) {
     const savedState = roomStates[roomName];
     sections = savedState.sections;
@@ -241,8 +262,7 @@ document.getElementById("joinRoomBtn").addEventListener("click", () => {
   ws.send(JSON.stringify({ type: "joinRoom", room: roomName, username }));
 });
 
-// --- ルーレット項目設定（入力欄） ---
-// 項目入力欄では、入力中は値をそのまま保持し、表示用に先頭・末尾の余分な空白は削除
+// ----- ルーレット項目設定（入力欄および同期処理） ----- 
 document.querySelectorAll(".itemInput").forEach(input => {
   input.addEventListener("blur", () => {
     input.value = input.value.trim();
@@ -265,10 +285,8 @@ function updateSections() {
   const inputs = document.querySelectorAll(".itemInput");
   sections = [];
   inputs.forEach(input => {
-    // 入力中はそのままの値を取得し、表示用に先頭・末尾は削除
     let val = input.value;
     let displayVal = sanitize(val).trim().substring(0, 300);
-    // 入力欄にはユーザーの入力内容を変更せず、表示用の値だけを利用
     if (displayVal !== "") { sections.push(displayVal); }
   });
   if (sections.length < 2) return false;
@@ -333,7 +351,7 @@ function attachRemoveHandler(button) {
 document.querySelectorAll(".removeItemBtn").forEach(attachRemoveHandler);
 document.querySelectorAll(".itemInput").forEach(attachInputSync);
 
-// --- ドラッグ＆ドロップ ---
+// ----- ドラッグ＆ドロップによる項目並び替え ----- 
 let dragSrcItem = null;
 function handleDragStart(e) {
   dragSrcItem = this.parentNode;
@@ -374,6 +392,7 @@ document.querySelectorAll("#itemsContainer .item").forEach(item => {
   item.addEventListener("drop", handleItemDrop);
 });
 
+// ----- 項目追加およびリセットボタンの処理 ----- 
 const addItemBtn = document.getElementById("addItemBtn");
 addItemBtn.addEventListener("click", () => {
   const container = document.getElementById("itemsContainer");
@@ -418,8 +437,11 @@ resetBtn.addEventListener("click", () => {
   setTimeout(() => { document.getElementById("result").textContent = ""; }, 2000);
 });
 
+// ----- ルーレット描画と回転処理 ----- 
 const canvas = document.getElementById("wheel");
 const ctx = canvas.getContext("2d");
+
+// ルーレットの描画
 function drawRouletteWheel() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   if (sections.length < 2) return;
@@ -442,6 +464,7 @@ function drawRouletteWheel() {
     ctx.fillText(text, textRadius, 10);
     ctx.restore();
   }
+  // 中央の矢印表示
   ctx.fillStyle = "#2d3748";
   ctx.beginPath();
   ctx.moveTo(250 - 10, 250 - (outsideRadius + 20));
@@ -452,11 +475,13 @@ function drawRouletteWheel() {
 }
 drawRouletteWheel();
 
+// 線形減速計算
 function linearDeceleration(t, v0, totalTime) {
   const a = v0 / totalTime;
   return Math.max(v0 - a * t, 0);
 }
 
+// ルーレット回転アニメーション
 function rotateWheel() {
   spinTime += 30;
   if (spinTime >= spinTimeTotal) {
@@ -469,6 +494,7 @@ function rotateWheel() {
   requestAnimationFrame(rotateWheel);
 }
 
+// 回転停止時の処理：結果の算出とサーバへの送信
 function stopRotateWheel() {
   isSpinning = false;
   const degrees = startAngle * 180 / Math.PI + 90;
@@ -480,6 +506,7 @@ function stopRotateWheel() {
   updateResultHistory();
 }
 
+// 結果履歴の更新
 function updateResultHistory() {
   const historyDiv = document.getElementById("resultHistory");
   historyDiv.innerHTML = "";
@@ -490,6 +517,7 @@ function updateResultHistory() {
   });
 }
 
+// ----- ルーレット実行（スピン）ボタンの処理 -----
 const spinBtn = document.getElementById("spinBtn");
 spinBtn.addEventListener("click", () => {
   if (!currentRoom) { alert("ルーム名を入力してください。"); return; }
@@ -508,6 +536,7 @@ spinBtn.addEventListener("click", () => {
   }));
 });
 
+// ----- ユーティリティ関数 ----- 
 function fadeIn(element) { element.classList.add("fade-in"); }
 
 function fallbackCopyTextToClipboard(text) {
